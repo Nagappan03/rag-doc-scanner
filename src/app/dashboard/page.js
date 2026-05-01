@@ -152,38 +152,38 @@ export default function DashboardPage() {
             )}
 
             {/* Navbar */}
-            <nav className="border-b border-gray-800 bg-gray-900 px-6 py-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm">R</div>
-                    <span className="text-white font-semibold">RAG Doc Q&A</span>
+            <nav className="border-b border-gray-800 bg-gray-900 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-lg bg-blue-600 flex-shrink-0 flex items-center justify-center text-white font-bold text-sm">R</div>
+                    <span className="text-white font-semibold truncate">RAG Doc Q&A</span>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
                     <button
                         onClick={() => router.push('/chat')}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer"
+                        className="px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer whitespace-nowrap"
                     >
-                        Go to Chat →
+                        Chat →
                     </button>
-                    <span className="text-gray-400 text-sm">{session?.user?.name}</span>
+                    <span className="text-gray-400 text-sm hidden sm:inline truncate max-w-[120px]">{session?.user?.name}</span>
                     <button
                         onClick={() => signOut({ callbackUrl: '/login' })}
-                        className="px-3 py-1.5 text-sm text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 rounded-lg transition-colors cursor-pointer"
+                        className="px-3 py-1.5 text-sm text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
                     >
                         Sign out
                     </button>
                 </div>
             </nav>
 
-            <div className="max-w-4xl mx-auto px-6 py-10">
-                <div className="mb-8">
-                    <h1 className="text-2xl font-bold text-white">Documents</h1>
-                    <p className="text-gray-400 mt-1">Upload PDFs or text files to chat with them</p>
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+                <div className="mb-6 sm:mb-8">
+                    <h1 className="text-xl sm:text-2xl font-bold text-white">Documents</h1>
+                    <p className="text-gray-400 mt-1 text-sm">Upload PDFs or text files to chat with them</p>
                 </div>
 
                 {/* Upload area */}
                 <div
                     onClick={() => !uploading && fileInputRef.current?.click()}
-                    className={`border-2 border-dashed rounded-xl p-10 text-center mb-6 transition-colors cursor-pointer ${uploading
+                    className={`border-2 border-dashed rounded-xl p-6 sm:p-10 text-center mb-6 transition-colors cursor-pointer ${uploading
                         ? 'border-blue-500 bg-blue-500/5 cursor-not-allowed'
                         : 'border-gray-700 hover:border-blue-500 hover:bg-blue-500/5'
                         }`}
@@ -197,7 +197,7 @@ export default function DashboardPage() {
                         disabled={uploading}
                     />
                     <div className="text-4xl mb-3">{uploading ? '⏳' : '📄'}</div>
-                    <p className="text-white font-medium">
+                    <p className="text-white font-medium text-sm sm:text-base">
                         {uploading ? 'Processing document...' : 'Click to upload a document'}
                     </p>
                     <p className="text-gray-500 text-sm mt-1">PDF, Markdown, or plain text — max 10MB</p>
@@ -217,7 +217,7 @@ export default function DashboardPage() {
 
                 {/* Documents list */}
                 <div className="bg-gray-900 rounded-xl border border-gray-800">
-                    <div className="px-6 py-4 border-b border-gray-800">
+                    <div className="px-4 sm:px-6 py-4 border-b border-gray-800">
                         <h2 className="text-white font-medium">
                             Your Documents
                             <span className="ml-2 text-gray-500 text-sm font-normal">({documents.length})</span>
@@ -234,13 +234,13 @@ export default function DashboardPage() {
                     ) : (
                         <ul className="divide-y divide-gray-800">
                             {documents.map((doc) => (
-                                <li key={doc.id} className="px-6 py-4 flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className="text-2xl">
+                                <li key={doc.id} className="px-4 sm:px-6 py-4 flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="text-2xl flex-shrink-0">
                                             {doc.type === 'application/pdf' ? '📕' : '📝'}
                                         </div>
-                                        <div>
-                                            <p className="text-white font-medium text-sm">{doc.name}</p>
+                                        <div className="min-w-0">
+                                            <p className="text-white font-medium text-sm truncate">{doc.name}</p>
                                             <p className="text-gray-500 text-xs mt-0.5">
                                                 {formatFileSize(doc.size)} · {doc._count.chunks} chunks · {formatDate(doc.createdAt)}
                                             </p>
@@ -248,7 +248,7 @@ export default function DashboardPage() {
                                     </div>
                                     <button
                                         onClick={() => setDeleteTarget(doc)}
-                                        className="text-gray-600 hover:text-red-400 text-sm transition-colors cursor-pointer"
+                                        className="text-gray-600 hover:text-red-400 text-sm transition-colors cursor-pointer flex-shrink-0"
                                     >
                                         Delete
                                     </button>

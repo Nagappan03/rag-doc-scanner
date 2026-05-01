@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 
 export default function ChatPage() {
-    const { data: session } = useSession()
+    useSession()
     const router = useRouter()
 
     const [messages, setMessages] = useState([])
@@ -16,6 +16,7 @@ export default function ChatPage() {
     const [documents, setDocuments] = useState([])
     const [selectedDocumentIds, setSelectedDocumentIds] = useState([])
     const [activeMenuId, setActiveMenuId] = useState(null)
+    const [sidebarOpen, setSidebarOpen] = useState(false)
 
     const menuRef = useRef(null)
     const messagesEndRef = useRef(null)
@@ -75,7 +76,6 @@ export default function ChatPage() {
                 ? prev.filter((id) => id !== docId)
                 : [...prev, docId]
         )
-        // Reset chat when document selection changes
         setMessages([])
         setConversationId(null)
     }
@@ -84,6 +84,7 @@ export default function ChatPage() {
         setMessages([])
         setConversationId(null)
         setInput('')
+        setSidebarOpen(false)
     }
 
     const handleSubmit = async (e) => {
@@ -184,12 +185,30 @@ export default function ChatPage() {
     const canChat = hasSelection && !loading
 
     return (
-        <div className="min-h-screen bg-gray-950 flex">
+        <div className="min-h-screen bg-gray-950 flex relative overflow-hidden">
+            {/* Mobile sidebar backdrop */}
+            {sidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/60 z-30 md:hidden"
+                    onClick={() => setSidebarOpen(false)}
+                />
+            )}
+
             {/* Sidebar */}
-            <aside className="w-72 bg-gray-900 border-r border-gray-800 flex flex-col">
+            <aside className={`fixed md:static inset-y-0 left-0 z-40 md:z-auto w-72 bg-gray-900 border-r border-gray-800 flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 <div className="p-4 border-b border-gray-800 flex items-center gap-2">
                     <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-xs">R</div>
                     <span className="text-white font-semibold text-sm">RAG Doc Q&A</span>
+                    {/* Close button - mobile only */}
+                    <button
+                        onClick={() => setSidebarOpen(false)}
+                        className="ml-auto md:hidden text-gray-400 hover:text-white transition-colors cursor-pointer"
+                        aria-label="Close sidebar"
+                    >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
                 </div>
 
                 {/* Document selector */}
@@ -201,7 +220,7 @@ export default function ChatPage() {
                         <div className="px-1">
                             <p className="text-gray-600 text-xs">No documents uploaded yet.</p>
                             <button
-                                onClick={() => router.push('/dashboard')}
+                                onClick={() => { router.push('/dashboard'); setSidebarOpen(false) }}
                                 className="text-blue-400 hover:text-blue-300 text-xs mt-1 transition-colors cursor-pointer"
                             >
                                 Upload from Dashboard →
@@ -274,12 +293,12 @@ export default function ChatPage() {
                                     : 'hover:bg-gray-800'
                                     }`}
                             >
-                                {/* Conversation button */}
                                 <button
                                     onClick={() => {
                                         setConversationId(conv.id)
                                         setActiveMenuId(null)
                                         fetchMessages(conv.id)
+                                        setSidebarOpen(false)
                                     }}
                                     className={`flex-1 text-left px-3 py-2 text-sm truncate pr-8 cursor-pointer ${conversationId === conv.id
                                         ? 'text-white'
@@ -289,7 +308,6 @@ export default function ChatPage() {
                                     {conv.title || 'Untitled'}
                                 </button>
 
-                                {/* 3-dot menu button */}
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation()
@@ -307,7 +325,6 @@ export default function ChatPage() {
                                     </svg>
                                 </button>
 
-                                {/* Dropdown menu */}
                                 {activeMenuId === conv.id && (
                                     <div className="absolute right-0 top-8 z-50 bg-gray-800 border border-gray-700 rounded-lg shadow-xl py-1 min-w-[120px]">
                                         <button
@@ -328,7 +345,7 @@ export default function ChatPage() {
 
                 <div className="p-3 border-t border-gray-800">
                     <button
-                        onClick={() => router.push('/dashboard')}
+                        onClick={() => { router.push('/dashboard'); setSidebarOpen(false) }}
                         className="w-full py-2 px-3 text-gray-400 hover:text-white text-sm border border-gray-700 hover:border-gray-500 rounded-lg transition-colors cursor-pointer"
                     >
                         ← Documents
@@ -337,16 +354,36 @@ export default function ChatPage() {
             </aside>
 
             {/* Main chat area */}
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col min-w-0">
+                {/* Mobile top bar */}
+                <div className="md:hidden flex items-center gap-3 px-4 py-3 bg-gray-900 border-b border-gray-800 flex-shrink-0">
+                    <button
+                        onClick={() => setSidebarOpen(true)}
+                        className="text-gray-400 hover:text-white transition-colors cursor-pointer"
+                        aria-label="Open sidebar"
+                    >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                    <div className="w-6 h-6 rounded-md bg-blue-600 flex items-center justify-center text-white font-bold text-xs">R</div>
+                    <span className="text-white font-semibold text-sm">RAG Doc Q&A</span>
+                    {hasSelection && (
+                        <span className="ml-auto text-blue-400 text-xs">
+                            {selectedDocumentIds.length} doc{selectedDocumentIds.length > 1 ? 's' : ''}
+                        </span>
+                    )}
+                </div>
+
                 {/* Selected docs header bar */}
                 {hasSelection && (
-                    <div className="px-6 py-2 bg-blue-600/10 border-b border-blue-500/20 flex items-center gap-2">
-                        <span className="text-blue-400 text-xs">Chatting with:</span>
+                    <div className="px-3 sm:px-6 py-2 bg-blue-600/10 border-b border-blue-500/20 flex items-center gap-2 flex-wrap">
+                        <span className="text-blue-400 text-xs flex-shrink-0">Chatting with:</span>
                         <div className="flex gap-2 flex-wrap">
                             {selectedDocumentIds.map((id) => {
                                 const doc = documents.find((d) => d.id === id)
                                 return doc ? (
-                                    <span key={id} className="text-xs bg-blue-600/20 text-blue-300 px-2 py-0.5 rounded-full border border-blue-500/30">
+                                    <span key={id} className="text-xs bg-blue-600/20 text-blue-300 px-2 py-0.5 rounded-full border border-blue-500/30 truncate max-w-[150px] sm:max-w-none">
                                         {doc.name}
                                     </span>
                                 ) : null
@@ -356,9 +393,9 @@ export default function ChatPage() {
                 )}
 
                 {/* Messages */}
-                <div className="flex-1 overflow-y-auto px-6 py-6">
+                <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 sm:py-6">
                     {messages.length === 0 ? (
-                        <div className="h-full flex flex-col items-center justify-center text-center">
+                        <div className="h-full flex flex-col items-center justify-center text-center px-4">
                             <div className="text-5xl mb-4">💬</div>
                             {!hasDocuments ? (
                                 <>
@@ -379,6 +416,12 @@ export default function ChatPage() {
                                     <p className="text-gray-500 text-sm max-w-sm">
                                         Choose one or more documents from the sidebar, then ask anything about them.
                                     </p>
+                                    <button
+                                        onClick={() => setSidebarOpen(true)}
+                                        className="mt-4 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm rounded-lg transition-colors cursor-pointer md:hidden"
+                                    >
+                                        Open Sidebar
+                                    </button>
                                 </>
                             ) : (
                                 <>
@@ -397,7 +440,7 @@ export default function ChatPage() {
                                     className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                                 >
                                     <div
-                                        className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${msg.role === 'user'
+                                        className={`max-w-[90%] sm:max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${msg.role === 'user'
                                             ? 'bg-blue-600 text-white rounded-br-sm'
                                             : 'bg-gray-800 text-gray-100 rounded-bl-sm'
                                             }`}
@@ -418,33 +461,34 @@ export default function ChatPage() {
                 </div>
 
                 {/* Input area */}
-                <div className="border-t border-gray-800 bg-gray-900 px-6 py-4">
+                <div className="border-t border-gray-800 bg-gray-900 px-3 sm:px-6 py-3 sm:py-4">
                     <div className="max-w-3xl mx-auto">
                         {!hasSelection ? (
                             <div className="text-center py-3 text-gray-500 text-sm">
-                                ← Select a document from the sidebar to start chatting
+                                <span className="hidden sm:inline">← Select a document from the sidebar to start chatting</span>
+                                <span className="sm:hidden">Tap ☰ to select a document and start chatting</span>
                             </div>
                         ) : (
                             <>
-                                <div className="flex gap-3 items-end">
+                                <div className="flex gap-2 sm:gap-3 items-end">
                                     <textarea
                                         value={input}
                                         onChange={(e) => setInput(e.target.value)}
                                         onKeyDown={handleKeyDown}
                                         placeholder="Ask a question about your selected documents..."
                                         rows={1}
-                                        className="flex-1 bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-colors resize-none"
+                                        className="flex-1 bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl px-3 sm:px-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-colors resize-none"
                                         style={{ minHeight: '44px', maxHeight: '120px' }}
                                     />
                                     <button
                                         onClick={handleSubmit}
                                         disabled={!canChat || !input.trim()}
-                                        className="px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white rounded-xl transition-colors text-sm font-medium cursor-pointer"
+                                        className="px-3 sm:px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white rounded-xl transition-colors text-sm font-medium cursor-pointer flex-shrink-0"
                                     >
                                         {loading ? '...' : 'Send'}
                                     </button>
                                 </div>
-                                <p className="text-gray-600 text-xs mt-2 text-center">
+                                <p className="text-gray-600 text-xs mt-2 text-center hidden sm:block">
                                     Enter to send · Shift+Enter for new line
                                 </p>
                             </>

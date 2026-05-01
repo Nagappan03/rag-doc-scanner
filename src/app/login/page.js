@@ -33,7 +33,6 @@ export default function LoginPage() {
     const handleChange = (e) => {
         const { name, value } = e.target
         setFormData({ ...formData, [name]: value })
-        // Clear field error on change
         if (errors[name]) {
             setErrors({ ...errors, [name]: '' })
         }
@@ -67,14 +66,14 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="min-h-screen flex items-center justify-center px-4 py-8">
             <div className="w-full max-w-md">
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-white">Welcome back</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-white">Welcome back</h1>
                     <p className="text-gray-400 mt-2">Sign in to your account</p>
                 </div>
 
-                <div className="bg-gray-900 rounded-2xl p-8 border border-gray-800">
+                <div className="bg-gray-900 rounded-2xl p-5 sm:p-8 border border-gray-800">
                     {serverError && (
                         <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
                             {serverError}
